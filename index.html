@@ -1,0 +1,289 @@
+<title>SentinelICS Maqueta</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Concepto: panel de operador de una planta potabilizadora, una idea por vista, cada vista lleva a la siguiente.
+   Funciona sin conexión: todo el CSS, JS y los dibujos van dentro de este archivo. */
+:root {
+  --bg: #eef3f4;
+  --surface: #ffffff;
+  --fg: #12262c;
+  --muted: #55696f;
+  --line: #cfdadd;
+  --accent: #0b6e8a;
+  --accent-ink: #ffffff;
+  --ok: #1d7a4b;
+  --ok-bg: #dff2e7;
+  --crit: #b3261e;
+  --crit-bg: #fbe3e0;
+  --decoy-bg: #e1f0f5;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1a1e; --surface: #15262c; --fg: #e6f0f2; --muted: #9db3ba; --line: #2b4048;
+    --accent: #4fb8d6; --accent-ink: #06222b; --ok: #5fcf93; --ok-bg: #163a29;
+    --crit: #ff8b80; --crit-bg: #45201d; --decoy-bg: #17323b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1a1e; --surface: #15262c; --fg: #e6f0f2; --muted: #9db3ba; --line: #2b4048;
+  --accent: #4fb8d6; --accent-ink: #06222b; --ok: #5fcf93; --ok-bg: #163a29;
+  --crit: #ff8b80; --crit-bg: #45201d; --decoy-bg: #17323b;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 17px; line-height: 1.5;
+  padding-block: 20px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; justify-content: space-between; }
+.brand { min-width: 0; }
+.brand h1 { margin: 0; font-size: 1.25rem; letter-spacing: .01em; }
+.brand p { margin: 0; color: var(--muted); font-size: .95rem; }
+.steps { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.steps span.label { color: var(--muted); font-size: .9rem; margin-right: 4px; }
+.steps button {
+  width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--fg); font: inherit; font-size: .95rem; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.steps button[aria-current="step"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel h2 { margin: 0; font-size: 1.4rem; text-wrap: balance; }
+.lead { margin: 0; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-weight: 700; width: fit-content; }
+.pill i { width: 12px; height: 12px; border-radius: 50%; background: currentColor; display: inline-block; }
+.pill.ok { background: var(--ok-bg); color: var(--ok); }
+.pill.crit { background: var(--crit-bg); color: var(--crit); }
+.alert-banner { background: var(--crit-bg); color: var(--crit); border-left: 8px solid var(--crit); border-radius: 6px; padding: 14px 16px; }
+.alert-banner strong { display: block; font-size: 1.7rem; line-height: 1.2; }
+.alert-banner span { color: var(--fg); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.stat b { display: block; font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat span { color: var(--muted); font-size: .92rem; }
+.mapbox { border: 1px solid var(--line); border-radius: 8px; padding: 8px; overflow-x: auto; }
+.mapbox svg { width: 100%; min-width: 520px; height: auto; display: block; }
+svg text { font-family: var(--font); fill: var(--fg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--muted); font-size: .9rem; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 16px; height: 12px; border-radius: 3px; display: inline-block; border: 2px solid var(--ok); background: var(--ok-bg); }
+.legend i.d { border: 2px dashed var(--accent); background: var(--decoy-bg); }
+.legend i.c { border-color: var(--crit); background: var(--crit-bg); }
+dl.facts { margin: 0; display: grid; grid-template-columns: minmax(130px, 200px) 1fr; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+dl.facts dt, dl.facts dd { margin: 0; padding: 11px 14px; border-bottom: 1px solid var(--line); min-width: 0; }
+dl.facts dt { color: var(--muted); background: var(--bg); }
+dl.facts dt:last-of-type, dl.facts dd:last-of-type { border-bottom: 0; }
+.note-ok { background: var(--ok-bg); color: var(--ok); font-weight: 700; padding: 12px 14px; border-radius: 8px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  font: inherit; font-weight: 700; padding: 13px 22px; min-height: 48px; border-radius: 8px; cursor: pointer;
+  border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+}
+.btn.second { background: transparent; color: var(--accent); }
+.btn:hover { filter: brightness(1.08); }
+.toast { color: var(--ok); font-weight: 700; }
+.bigcount { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; }
+.bigcount b { font-size: 3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .95rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--bg); color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chartbox { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; max-width: 460px; }
+.chartbox svg { width: 100%; height: auto; display: block; }
+.money { background: var(--ok-bg); color: var(--ok); border-radius: 10px; padding: 18px 20px; }
+.money b { display: block; font-size: 3.2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.money span { color: var(--fg); }
+.gains { margin: 0; padding-left: 1.5em; display: grid; gap: 6px; }
+.gains b { margin-right: 6px; }
+.gains span { color: var(--muted); }
+.calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.calc div { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.calc b { display: block; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.calc span { color: var(--muted); font-size: .92rem; }
+.fine { color: var(--muted); font-size: .88rem; margin: 0; }
+footer { color: var(--muted); font-size: .88rem; }
+@media (max-width: 560px) {
+  dl.facts { grid-template-columns: 1fr; }
+  dl.facts dt { border-bottom: 0; padding-bottom: 2px; }
+  .money b { font-size: 2.5rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .panel { animation: rise .25s ease-out; }
+  @keyframes rise { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>SentinelICS</h1>
+      <p>Acueducto de ejemplo · Planta potabilizadora</p>
+    </div>
+    <nav class="steps" aria-label="Vistas de la maqueta" id="steps"></nav>
+  </header>
+
+  <main id="stage" aria-live="polite"></main>
+
+  <footer>Maqueta con datos de ejemplo inventados. No contiene datos personales ni direcciones reales.</footer>
+</div>
+
+<script>
+(function () {
+  var TOTAL = 5;
+  var current = 1;
+  var stage = document.getElementById('stage');
+  var stepsEl = document.getElementById('steps');
+
+  function box(x, y, w, h, label, kind, sub) {
+    var cls = kind === 'decoy' ? 'fill:var(--decoy-bg);stroke:var(--accent);stroke-dasharray:7 5;'
+            : kind === 'crit' ? 'fill:var(--crit-bg);stroke:var(--crit);'
+            : 'fill:var(--ok-bg);stroke:var(--ok);';
+    var s = '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="8" style="' + cls + 'stroke-width:2.5"/>';
+    s += '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 - (sub ? 4 : -5)) + '" text-anchor="middle" font-size="16" font-weight="700">' + label + '</text>';
+    if (sub) s += '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 16) + '" text-anchor="middle" font-size="13" style="fill:var(--muted)">' + sub + '</text>';
+    return s;
+  }
+
+  function plantMap(alert) {
+    var s = '<svg viewBox="0 0 720 320" role="img" aria-label="Esquema de la planta: tanque, dos bombas y dos equipos señuelo">';
+    s += '<g style="stroke:var(--muted);stroke-width:2.5;fill:none">' +
+         '<path d="M130 160 H165 V95 H200"/><path d="M130 160 H165 V225 H200"/></g>';
+    s += box(20, 125, 110, 70, 'Tanque', 'real', alert ? 'Sin cambios' : 'Normal');
+    s += box(200, 60, 120, 70, 'Bomba 1', 'real', alert ? 'Sin cambios' : 'Normal');
+    s += box(200, 190, 120, 70, 'Bomba 2', 'real', alert ? 'Sin cambios' : 'Normal');
+    s += box(385, 60, 180, 70, 'Señuelo de tanque', 'decoy', 'Vigilando');
+    s += box(385, 190, 180, 70, 'Señuelo de bomba', alert ? 'crit' : 'decoy', alert ? 'Intento detectado' : 'Vigilando');
+    if (alert) {
+      s += '<g style="stroke:var(--crit);stroke-width:4;fill:none"><path d="M706 225 H566"/><path d="M580 213 L564 225 L580 237"/></g>';
+      s += '<text x="706" y="205" text-anchor="end" font-size="15" font-weight="700" style="fill:var(--crit)">Intento de acceso</text>';
+    }
+    s += '</svg>';
+    return '<div class="mapbox">' + s + '</div>' +
+      '<div class="legend"><span><i></i>Equipo real</span><span><i class="d"></i>Equipo señuelo</span>' +
+      (alert ? '<span><i class="c"></i>Donde cayó el intento</span>' : '') + '</div>';
+  }
+
+  var events = [
+    ['17/11 · 10:42', 'Señuelo de bomba', '203.0.113.25', 'Intentó cambiar el funcionamiento de la bomba', 'Registrado a tiempo'],
+    ['16/11 · 22:10', 'Señuelo de tanque', '198.51.100.7', 'Intentó ver el nivel del tanque', 'Registrado a tiempo'],
+    ['15/11 · 03:31', 'Señuelo de bomba', '192.0.2.88', 'Probó contraseñas una y otra vez', 'Registrado a tiempo'],
+    ['13/11 · 14:05', 'Señuelo de tanque', '203.0.113.140', 'Intentó apagar el tanque', 'Registrado a tiempo'],
+    ['12/11 · 09:48', 'Señuelo de bomba', '198.51.100.62', 'Intentó cambiar el funcionamiento de la bomba', 'Registrado a tiempo']
+  ];
+
+  function weeklyChart() {
+    var vals = [2, 4, 3, 3], labels = ['Sem. 1', 'Sem. 2', 'Sem. 3', 'Sem. 4'];
+    var s = '<svg viewBox="0 0 360 180" role="img" aria-label="Intentos detectados por semana: 2, 4, 3 y 3">';
+    s += '<line x1="20" y1="140" x2="350" y2="140" style="stroke:var(--line);stroke-width:2"/>';
+    vals.forEach(function (v, i) {
+      var h = v * 28, x = 40 + i * 78, y = 140 - h;
+      s += '<rect x="' + x + '" y="' + y + '" width="48" height="' + h + '" rx="4" style="fill:var(--accent)"/>';
+      s += '<text x="' + (x + 24) + '" y="' + (y - 7) + '" text-anchor="middle" font-size="15" font-weight="700">' + v + '</text>';
+      s += '<text x="' + (x + 24) + '" y="162" text-anchor="middle" font-size="13" style="fill:var(--muted)">' + labels[i] + '</text>';
+    });
+    return s + '</svg>';
+  }
+
+  var views = {
+    1: function () {
+      return '<section class="panel"><span class="pill ok"><i></i>Todo tranquilo</span>' +
+        '<h2>Panel de la planta</h2>' +
+        '<p class="lead">Así se ve la planta ahora. Los equipos señuelo vigilan en silencio y avisan si alguien intenta entrar.</p>' +
+        plantMap(false) +
+        '<div class="stats"><div class="stat"><b>5</b><span>equipos vigilados</span></div>' +
+        '<div class="stat"><b>0</b><span>intentos de acceso hoy</span></div>' +
+        '<div class="stat"><b>hace 1 min</b><span>última revisión</span></div></div>' +
+        '<div class="row"><button class="btn" data-go="2">Ver lo que está pasando</button></div></section>';
+    },
+    2: function () {
+      return '<section class="panel"><div class="alert-banner" role="alert"><strong>Acceso sospechoso</strong>' +
+        '<span>Alguien intentó entrar a un equipo de la planta hoy a las 10:42 a. m.</span></div>' +
+        '<h2>Lo que sabemos hasta ahora</h2>' +
+        '<p class="lead">El intento cayó en el señuelo de la bomba. Los equipos reales siguen sin cambios.</p>' +
+        plantMap(true) +
+        '<div class="row"><button class="btn" data-go="3">Ver qué pasó</button><button class="btn second" data-go="1">Volver al panel</button></div></section>';
+    },
+    3: function () {
+      return '<section class="panel"><h2>Qué pasó</h2>' +
+        '<p class="lead">Aquí está el detalle del intento, en palabras sencillas.</p>' +
+        '<dl class="facts">' +
+        '<dt>Hora</dt><dd>Hoy, 10:42 a. m.</dd>' +
+        '<dt>Dónde cayó</dt><dd>Señuelo de bomba (parece la Bomba 2, pero no controla nada real)</dd>' +
+        '<dt>Desde dónde</dt><dd>203.0.113.25 (dirección de ejemplo)</dd>' +
+        '<dt>Qué intentó</dt><dd>Cambiar el funcionamiento de la bomba</dd>' +
+        '<dt>Resultado</dt><dd>Quedó registrado. Ningún equipo real fue tocado.</dd></dl>' +
+        '<div class="note-ok">La planta sigue funcionando con normalidad.</div>' +
+        '<div class="row"><button class="btn second" id="notify">Avisar a Don Ricardo por Telegram</button>' +
+        '<span class="toast" id="toast" role="status"></span></div>' +
+        '<div class="row"><button class="btn" data-go="4">Ver el resumen del mes</button></div></section>';
+    },
+    4: function () {
+      var rows = events.map(function (e) {
+        return '<tr><td class="num">' + e[0] + '</td><td>' + e[1] + '</td><td class="num">' + e[2] + '</td><td>' + e[3] + '</td><td>' + e[4] + '</td></tr>';
+      }).join('');
+      return '<section class="panel"><h2>Resumen del mes</h2>' +
+        '<div class="bigcount"><b>12</b><span>intentos detectados a tiempo, <strong>0</strong> llegaron a equipos reales</span></div>' +
+        '<div class="chartbox">' + weeklyChart() + '</div>' +
+        '<h3 style="margin:0;font-size:1.05rem">Últimos 5 intentos</h3>' +
+        '<div class="table-scroll"><table><thead><tr><th>Fecha y hora</th><th>Equipo</th><th>Desde dónde</th><th>Qué intentó</th><th>Resultado</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div class="row"><button class="btn" data-go="5">Ver cuánto se evitó perder</button></div></section>';
+    },
+    5: function () {
+      return '<section class="panel"><h2>Lo que se evitó perder este mes</h2>' +
+        '<div class="money"><b>$9.000</b><span>evitados este mes en pérdidas potenciales, gracias al aviso a tiempo</span></div>' +
+        '<ol class="gains"><li><b>Menos pérdidas:</b><span>tres paros que no ocurrieron.</span></li><li><b>Mayor seguridad:</b><span>los 12 intentos quedaron registrados y ninguno llegó a un equipo real.</span></li><li><b>Operación continua:</b><span>la planta siguió dando agua a la comunidad.</span></li></ol>' +
+        '<div class="calc">' +
+        '<div><b>3 de 12</b><span>intentos que habrían parado la planta</span></div>' +
+        '<div><b>$3.000</b><span>cuesta cada paro: unas 6 horas sin agua, reparaciones e ingresos perdidos</span></div>' +
+        '<div><b>$23 al mes</b><span>cuesta tener SentinelICS funcionando</span></div></div>' +
+        '<p class="lead">Por cada $1 que cuesta el sistema, se evitó perder unos $390.</p>' +
+        '<p class="fine">Cifras de ejemplo para la maqueta. El costo de $23 al mes sale del estudio de mercado del proyecto (alternativa básica, $815 en tres años).</p>' +
+        '<div class="row"><button class="btn second" data-go="1">Volver al inicio</button></div></section>';
+    }
+  };
+
+  function buildSteps() {
+    var html = '<span class="label">Vista</span>';
+    for (var i = 1; i <= TOTAL; i++) {
+      html += '<button type="button" data-go="' + i + '" aria-label="Ir a la vista ' + i + ' de ' + TOTAL + '"' +
+              (i === current ? ' aria-current="step"' : '') + '>' + i + '</button>';
+    }
+    stepsEl.innerHTML = html;
+  }
+
+  function show(n) {
+    if (n < 1 || n > TOTAL) n = 1;
+    current = n;
+    stage.innerHTML = views[n]();
+    buildSteps();
+    var notify = document.getElementById('notify');
+    if (notify) {
+      notify.addEventListener('click', function () {
+        document.getElementById('toast').textContent = 'Aviso enviado a Don Ricardo (simulación).';
+      });
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function fromHash() {
+    var m = /^#v([1-5])$/.exec(location.hash || '');
+    return m ? parseInt(m[1], 10) : 1;
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-go]') : null;
+    if (!t) return;
+    var n = parseInt(t.getAttribute('data-go'), 10);
+    if (location.hash !== '#v' + n) { location.hash = 'v' + n; } else { show(n); }
+  });
+  window.addEventListener('hashchange', function () { show(fromHash()); });
+  show(fromHash());
+})();
+</script>
